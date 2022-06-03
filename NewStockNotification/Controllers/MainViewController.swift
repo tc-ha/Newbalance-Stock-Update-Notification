@@ -24,6 +24,16 @@ class MainViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         
+        title = "Main"
+        APICaller.shared.getCurrentShoesStock { result in
+            switch result {
+            case .success(let model):
+                break
+            case .failure(let error):
+                print(error.localizedDescription)
+            }
+        }
+        
         configureSearchController()
         configureTableView()
         tableView.register(TableViewCell.classForCoder(), forCellReuseIdentifier: TableViewCell.cellIdentifier)
