@@ -16,7 +16,7 @@ class TabBarViewController: UITabBarController {
         let vc2 = FavoriteViewController()
         
         vc1.title = "Main"
-        vc2.title = "favorite"
+        vc2.title = "Favorite"
         
         vc1.navigationItem.largeTitleDisplayMode = .always
         vc2.navigationItem.largeTitleDisplayMode = .always

@@ -27,7 +27,7 @@ final class APICaller {
     private init() {}
     
     public func getCurrentShoesStock(completion: @escaping (Result<Products, Error>) -> Void) {
-                
+        
         let baseRequest = createRequest(with: URL(string: Constants.baseAPIURL + "/" + ".json"), type: .GET)
         let task = URLSession.shared.dataTask(with: baseRequest) { data, _, error in
             
@@ -39,7 +39,7 @@ final class APICaller {
             do {
 //                 let res = try JSONSerialization.jsonObject(with: data, options: .allowFragments)
                 let res = try JSONDecoder().decode(Products.self, from: data)
-                print(res)
+                completion(.success(res))
             } catch {
                 print(error)
                 completion(.failure(error))

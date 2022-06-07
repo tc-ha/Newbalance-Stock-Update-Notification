@@ -7,15 +7,35 @@
 
 import Foundation
 
-struct Products: Codable {
+struct Products: Codable, Hashable {
     let products: [Shoes]
+    
+    func hash(into hasher: inout Hasher) {
+      hasher.combine(identifier)
+    }
+    
+    static func == (lhs: Products, rhs: Products) -> Bool {
+      return lhs.identifier == rhs.identifier
+    }
+    
+    private let identifier = UUID()
 }
 
-struct Shoes: Codable {
+struct Shoes: Codable, Hashable {
     let color: String
     let name: String
-    let image: String?
+    let image: String
     let width: Width
+    
+    func hash(into hasher: inout Hasher) {
+      hasher.combine(identifier)
+    }
+    
+    static func == (lhs: Shoes, rhs: Shoes) -> Bool {
+      return lhs.identifier == rhs.identifier
+    }
+    
+    private let identifier = UUID()
 }
 
 struct Width: Codable {

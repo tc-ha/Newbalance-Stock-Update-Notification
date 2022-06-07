@@ -1,5 +1,5 @@
 //
-//  ViewController.swift
+//  FavoriteViewController.swift
 //  NewStockNotification
 //
 //  Created by taechan on 2022/06/01.
@@ -7,44 +7,31 @@
 
 import UIKit
 
-class MainViewController: UIViewController {
+class MainViewController: UIViewController, UICollectionViewDelegate {
     
-    private var tableView: UITableView! // 이게 왜 꼭 ! 이어야 할까?
+    var products: Products!
     
-    var data: [String] = ["Tom", "Jim", "Carry", "John", "Michelle", "Obama", "Barack", "Donald", "Trump", "Biden", "Joe"]
-    var filteredData: [String] = []
+    private let collectionView = UICollectionView(frame: .zero, collectionViewLayout: MainViewController.generateLayout())
     
-    var isFiltering: Bool {
-        let searchController = self.navigationItem.searchController
-        let isActive = searchController?.isActive ?? false
-        let isSearchBarHasText = searchController?.searchBar.text?.isEmpty == false
-        return isActive && isSearchBarHasText
+    
+    enum Section: CaseIterable {
+        case first
     }
+    
+    var dataSource: UICollectionViewDiffableDataSource<Section, Shoes>!
     
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        title = "Main"
-        APICaller.shared.getCurrentShoesStock { result in
-            switch result {
-            case .success(let model):
-                break
-            case .failure(let error):
-                print(error.localizedDescription)
-            }
-        }
-        
         configureSearchController()
-        configureTableView()
-        tableView.register(TableViewCell.classForCoder(), forCellReuseIdentifier: TableViewCell.cellIdentifier)
+        configureCollectionView()
+        configureDatasource()
+        fetchData()
     }
     
     func configureSearchController() {
         
         let searchController = UISearchController(searchResultsController: nil)
-        searchController.searchBar.scopeButtonTitles = [
-            "All", "Birthdays", "Weddings",
-        ]
         searchController.searchBar.showsScopeBar = false
         searchController.hidesNavigationBarDuringPresentation = false
         
@@ -54,67 +41,98 @@ class MainViewController: UIViewController {
         self.navigationItem.searchController = searchController
     }
     
-    func configureTableView() {
-        tableView = UITableView()
-        tableView?.translatesAutoresizingMaskIntoConstraints = false
-        view.addSubview(tableView)
-        
-        tableView.register(TableViewCell.classForCoder(), forCellReuseIdentifier: TableViewCell.cellIdentifier)
-        
-        tableView.topAnchor.constraint(equalTo: view.topAnchor, constant: 0).isActive = true
-        tableView.bottomAnchor.constraint(equalTo: view.bottomAnchor, constant: 0).isActive = true
-        tableView.leftAnchor.constraint(equalTo: view.leftAnchor, constant: 0).isActive = true
-        tableView.rightAnchor.constraint(equalTo: view.rightAnchor, constant: 0).isActive = true
-        
-        tableView.delegate = self
-        tableView.dataSource = self
+    func configureCollectionView() {
+        view.addSubview(collectionView)
+        collectionView.register(CollectionViewCell.self, forCellWithReuseIdentifier: CollectionViewCell.identifier)
+        collectionView.frame = view.bounds
+        collectionView.backgroundColor = .systemBackground
+        collectionView.delegate = self
     }
     
-}
-
-// MARK: - Delegate, DataSource
-
-extension MainViewController: UITableViewDelegate, UITableViewDataSource {
-    
-    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return self.isFiltering ? self.filteredData.count : self.data.count
+    func configureDatasource() {
+        dataSource = UICollectionViewDiffableDataSource(collectionView: collectionView, cellProvider: { collectionView, indexPath,
+            model in
+            
+            let type = Section.allCases[indexPath.section]
+            switch type {
+            case .first:
+                guard let cell = collectionView.dequeueReusableCell(
+                    withReuseIdentifier: CollectionViewCell.identifier,
+                    for: indexPath) as? CollectionViewCell else { fatalError("Could not create new cell") }
+                print(indexPath.row)
+                let url = URL(string: model.image)
+                let name = model.name
+                cell.configure(with: url!, with: name)
+                return cell
+            }
+        })
     }
     
-    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        let cell = tableView.dequeueReusableCell(withIdentifier: TableViewCell.cellIdentifier, for: indexPath) as! TableViewCell
-        
-        if self.isFiltering {
-            cell.memberNameLabel.text = filteredData[indexPath.row]
-        } else {
-            cell.memberNameLabel.text = data[indexPath.row]
+    func fetchData() {
+        APICaller.shared.getCurrentShoesStock { [weak self] result in
+            switch result {
+            case .success(let model):
+                self?.products = model
+                DispatchQueue.main.async {
+                    self?.updateDatasource(with: nil)
+                }
+            case .failure(let error):
+                print("loading failed...", error)
+            }
         }
-        return cell
     }
     
-    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        // print(data[indexPath.row])
-        let detailVC = MainDetailViewController()
-        navigationController?.pushViewController(detailVC, animated: true)
-        // let navVC = UINavigationController(rootViewController: detailVC)
-        // navVC.modalPresentationStyle = .fullScreen
-        // self.present(navVC, animated: false)
+    func updateDatasource(with filter: String?) {
+        let filtered = self.products.products.filter { $0.name.lowercased().hasPrefix(filter ?? "") }
         
+        var snapshot = NSDiffableDataSourceSnapshot<Section, Shoes>()
+        snapshot.appendSections([.first])
+        snapshot.appendItems(filtered)
+        dataSource.apply(snapshot, animatingDifferences: true, completion: nil)
+    }
+    
+    static func generateLayout() -> UICollectionViewCompositionalLayout {
+        // Item
+        let item = NSCollectionLayoutItem(
+            layoutSize: NSCollectionLayoutSize(
+                widthDimension: .fractionalWidth(1),
+                heightDimension: .fractionalHeight(1)))
+        
+        item.contentInsets = NSDirectionalEdgeInsets(top: 4, leading: 4, bottom: 4, trailing: 4)
+        
+        // Group
+        let group = NSCollectionLayoutGroup.horizontal(
+            layoutSize: NSCollectionLayoutSize(
+                widthDimension: .fractionalWidth(1),
+                heightDimension: .fractionalHeight(2/7)
+            ),
+            subitem: item,
+            count: 2
+        )
+        // Section
+        let secion = NSCollectionLayoutSection(
+            group: group)
+        
+        // Return
+        return UICollectionViewCompositionalLayout(section: secion)
+    }
+    
+    func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
+        let detailVC = MainDetailViewController()
+        detailVC.textLabel = self.products.products[indexPath.row].name
+        detailVC.imageUrl = self.products.products[indexPath.row].image
+        navigationController?.pushViewController(detailVC, animated: true)
     }
 }
 
-// MARK: - Search Result Updating
 
 extension MainViewController: UISearchResultsUpdating {
-    
     func updateSearchResults(for searchController: UISearchController) {
-        // dump(searchController.searchBar.text)
+        print(searchController.searchBar.text)
         guard let text = searchController.searchBar.text?.lowercased() else { return }
-        self.filteredData = data.filter({ each in
-            return each.lowercased().contains(text) // $0.localizedCaseInsensitiveContains(text) or $0.lowercased().hasPrefix(text)
-        })
-        
-        // dump(self.filteredData)
-        self.tableView.reloadData()
+        DispatchQueue.main.async {
+            self.updateDatasource(with: text)
+        }
     }
-    
 }
+
