@@ -119,8 +119,9 @@ class MainViewController: UIViewController, UICollectionViewDelegate {
     
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
         let detailVC = MainDetailViewController()
-        detailVC.textLabel = self.products.products[indexPath.row].name
-        detailVC.imageUrl = self.products.products[indexPath.row].image
+        let imageUrl = self.products.products[indexPath.row].image
+        let name = self.products.products[indexPath.row].name
+        detailVC.configure(withUrl: imageUrl, withName: name)
         navigationController?.pushViewController(detailVC, animated: true)
     }
 }
