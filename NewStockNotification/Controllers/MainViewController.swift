@@ -119,8 +119,10 @@ class MainViewController: UIViewController, UICollectionViewDelegate {
     
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
         let detailVC = MainDetailViewController()
-        let imageUrl = self.products.products[indexPath.row].image
-        let name = self.products.products[indexPath.row].name
+        let row = self.products.products[indexPath.row]
+        let width = row.width
+        let imageUrl = row.image
+        let name = row.name
         detailVC.configure(withUrl: imageUrl, withName: name)
         navigationController?.pushViewController(detailVC, animated: true)
     }
@@ -129,7 +131,7 @@ class MainViewController: UIViewController, UICollectionViewDelegate {
 
 extension MainViewController: UISearchResultsUpdating {
     func updateSearchResults(for searchController: UISearchController) {
-        print(searchController.searchBar.text)
+        // print(searchController.searchBar.text)
         guard let text = searchController.searchBar.text?.lowercased() else { return }
         DispatchQueue.main.async {
             self.updateDatasource(with: text)

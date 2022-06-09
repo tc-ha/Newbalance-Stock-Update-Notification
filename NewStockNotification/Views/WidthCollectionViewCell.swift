@@ -8,8 +8,8 @@
 import Foundation
 import UIKit
 
-class SizeCollectionViewCell: UICollectionViewCell {
-    static let identifier = "SizeCollectionViewController"
+class WidthCollectionViewCell: UICollectionViewCell {
+    static let identifier = "WidthCollectionViewController"
     
     private let label: UILabel = {
         let label = UILabel()
@@ -22,10 +22,10 @@ class SizeCollectionViewCell: UICollectionViewCell {
         return label
     }()
     
+    
     override init(frame: CGRect) {
         super.init(frame: frame)
         contentView.addSubview(label)
-//        contentView.clipsToBounds = true
         setupViews()
     }
     
