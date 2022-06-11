@@ -123,7 +123,7 @@ class MainViewController: UIViewController, UICollectionViewDelegate {
         let width = row.width
         let imageUrl = row.image
         let name = row.name
-        detailVC.configure(withUrl: imageUrl, withName: name)
+        detailVC.configure(imageUrl, name, width)
         navigationController?.pushViewController(detailVC, animated: true)
     }
 }

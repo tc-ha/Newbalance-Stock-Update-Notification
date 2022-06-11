@@ -43,7 +43,14 @@ class SizeCollectionViewCell: UICollectionViewCell {
         super.layoutSubviews()
     }
     
-    func configure(with name: String) {
+    func configure(with name: String, _ sizeExists: Bool) {
         label.text = name
+        if !sizeExists {
+            label.backgroundColor = .lightGray
+        } else {
+            label.backgroundColor = .white
+        }
+        
+        print(sizeExists)
     }
 }

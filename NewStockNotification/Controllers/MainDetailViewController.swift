@@ -9,13 +9,32 @@ import UIKit
 
 class MainDetailViewController: UIViewController, UICollectionViewDelegate {
     
-    var sizeData: [String] = ["6", "6.5", "7",
-                              "7.5", "8", "8.5",
-                              "9", "9.5", "10",
-                              "10.5", "11", "11.5"]
+    var sizeData: [String] = ["6.0", "6.5", "7.0",
+                              "7.5", "8.0", "8.5",
+                              "9.0", "9.5", "10.0",
+                              "10.5", "11.0", "11.5"]
     
     var widthData: [String] = ["X-Narrow", "Narrow", "Standard",
                                "Wide", "X-Wide"]
+    
+    var width: Width!
+    
+    var data = [String : [String:Bool]]()
+    
+    var switches = 0
+    
+    let map: [Int:String] = [0: "X-Narrow",
+                             1: "Narrow",
+                             2: "Standard",
+                             3: "Wide",
+                             4: "X-Wide"]
+    
+    let buttonStack: UIStackView = {
+        let buttonStack = UIStackView()
+        return buttonStack
+    }()
+    
+    var widthButtons: [UIButton] = []
     
     let textLabel: UILabel = {
         let label = UILabel()
@@ -56,9 +75,51 @@ class MainDetailViewController: UIViewController, UICollectionViewDelegate {
         self.view.backgroundColor = .systemBackground
         self.title = "Detail view"
         
+        configureCollectionViews()
+        contentView.addSubview(sizeCollectionView)
+        initializeButtons()
+        
+        view.addSubview(buttonStack)
+        for btn in self.widthButtons {
+            buttonStack.addArrangedSubview(btn)
+        }
+    
+        setupViews()
+        
+        // Add observer in controller(s) where you want to receive data
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(self.methodOfReceivedNotification(notification:)),
+            name: Notification.Name("NotificationIdentifier"), object: nil)
+    }
+    
+    func initializeButtons() {
+        for i in 0..<5 {
+            let btn = UIButton()
+            btn.setTitle(self.widthData[i], for: .normal)
+            btn.addTarget(self, action: #selector(buttonTapped), for: .touchUpInside)
+            btn.setTitleColor(.black, for: .normal)
+            btn.layoutMargins = UIEdgeInsets(top: 0, left: 10, bottom: 0, right: 10)
+            btn.layer.borderWidth = CGFloat(1.0)
+            btn.tag = i
+            let key = self.map[i]!
+            btn.isEnabled = self.data[key] != nil
+            btn.backgroundColor = btn.isEnabled ? .white : .lightGray
+            self.widthButtons.append(btn)
+        }
+    }
+    
+    @objc
+    func buttonTapped(sender: UIButton!) {
+        print(switches)
+        switches = sender.tag
+        sizeCollectionView.reloadData()
+    }
+    
+    func configureCollectionViews() {
         let layout = UICollectionViewFlowLayout()
         layout.scrollDirection = .vertical
-
+        
         sizeCollectionView = UICollectionView(frame: .zero, collectionViewLayout: layout)
         sizeCollectionView.delegate = self
         sizeCollectionView.dataSource = self
@@ -75,38 +136,20 @@ class MainDetailViewController: UIViewController, UICollectionViewDelegate {
         widthCollectionView.dataSource = self
         widthCollectionView.register(WidthCollectionViewCell.self, forCellWithReuseIdentifier: WidthCollectionViewCell.identifier)
         
-        
-//        view.addSubview(scrollView)
-//        scrollView.addSubview(contentView)
         view.addSubview(contentView)
         view.addSubview(imageView)
         view.addSubview(textLabel)
-        contentView.addSubview(sizeCollectionView)
-//        view.addSubview(widthCollectionView)
-//        scrollView.addSubview(sizeCollectionView)
-//        scrollView.addSubview(widthCollectionView)
-//        scrollView.addSubview(imageView)
-//        scrollView.addSubview(textLabel)
-        // scrollView.addSubview(sizeCollectionView)
-        // scrollView.addSubview(widthCollectionView)
-        
-        setupViews()
+    }
+    
+    // MARK: Method for receiving Data through Post Notification
+    @objc func methodOfReceivedNotification(notification: Notification) {
+        if let obj = notification.object as? Int {
+            switches = obj
+        }
     }
     
     func setupViews() {
         let safeLayout = view.safeAreaLayoutGuide
-        
-//        scrollView.topAnchor.constraint(equalTo: safeLayout.topAnchor).isActive = true
-//        scrollView.leadingAnchor.constraint(equalTo: safeLayout.leadingAnchor).isActive = true
-//        scrollView.trailingAnchor.constraint(equalTo: safeLayout.trailingAnchor).isActive = true
-//        scrollView.bottomAnchor.constraint(equalTo: safeLayout.bottomAnchor).isActive = true
-        
-//        contentView.translatesAutoresizingMaskIntoConstraints = false
-//        contentView.topAnchor.constraint(equalTo: scrollView.topAnchor).isActive = true
-//        //        contentView.bottomAnchor.constraint(equalTo: scrollView.bottomAnchor).isActive = true
-//        contentView.leadingAnchor.constraint(equalTo: scrollView.leadingAnchor).isActive = true
-//        //        contentView.trailingAnchor.constraint(equalTo: scrollView.trailingAnchor).isActive = true
-//        contentView.widthAnchor.constraint(equalTo: scrollView.widthAnchor).isActive = true
         
         imageView.translatesAutoresizingMaskIntoConstraints = false
         imageView.topAnchor.constraint(equalTo: safeLayout.topAnchor).isActive = true
@@ -123,32 +166,69 @@ class MainDetailViewController: UIViewController, UICollectionViewDelegate {
         textLabel.font = UIFont(name:"HelveticaNeue-Bold", size: 25.0)
         
         
+//        contentView.backgroundColor = .lightGray
         contentView.translatesAutoresizingMaskIntoConstraints = false
-//        contentView.backgroundColor = .brown
         contentView.topAnchor.constraint(equalTo: safeLayout.topAnchor).isActive = true
         contentView.bottomAnchor.constraint(equalTo: safeLayout.bottomAnchor).isActive = true
         contentView.leadingAnchor.constraint(equalTo: safeLayout.leadingAnchor).isActive = true
         contentView.trailingAnchor.constraint(equalTo: safeLayout.trailingAnchor).isActive = true
         
         sizeCollectionView.translatesAutoresizingMaskIntoConstraints = false
-//        sizeCollectionView.backgroundColor = .darkGray
-        sizeCollectionView.topAnchor.constraint(equalTo: textLabel.bottomAnchor, constant: 25).isActive = true
+        sizeCollectionView.topAnchor.constraint(equalTo: buttonStack.bottomAnchor, constant: 25).isActive = true
         sizeCollectionView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor).isActive = true
         sizeCollectionView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 10).isActive = true
         sizeCollectionView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -10).isActive = true
-
-//        widthCollectionView.translatesAutoresizingMaskIntoConstraints = false
-//        widthCollectionView.topAnchor.constraint(equalTo: sizeCollectionView.bottomAnchor, constant: 25).isActive = true
-//        widthCollectionView.bottomAnchor.constraint(equalTo: safeLayout.bottomAnchor).isActive = true
-//        widthCollectionView.leadingAnchor.constraint(equalTo: safeLayout.leadingAnchor).isActive = true
-//        widthCollectionView.trailingAnchor.constraint(equalTo: safeLayout.trailingAnchor).isActive = true
         
+        buttonStack.translatesAutoresizingMaskIntoConstraints = false
+        buttonStack.topAnchor.constraint(equalTo: textLabel.bottomAnchor, constant: 30).isActive = true
+//        buttonStack.bottomAnchor.constraint(equalTo: contentView.bottomAnchor).isActive = true
+        buttonStack.leadingAnchor.constraint(equalTo: contentView.leadingAnchor).isActive = true
+        buttonStack.trailingAnchor.constraint(equalTo: contentView.trailingAnchor).isActive = true
     }
     
-    func configure(withUrl url: String, withName name: String) {
+    func configure(_ url: String, _ name: String, _ width: Width) {
         guard let url = URL(string: url) else { return }
-        imageView.load(url: url)
-        textLabel.text = name
+        self.imageView.load(url: url)
+        self.textLabel.text = name
+        self.width = width
+        
+        if let narrow = width.Narrow {
+            var tempDict = [String:Bool]()
+            for (k, v) in narrow.size {
+                tempDict[k.replacingOccurrences(of: ",", with: ".")] = v
+            }
+            data["Narrow"] = tempDict
+        }
+        if let standard = width.Standard {
+            var tempDict = [String:Bool]()
+            for (k, v) in standard.size {
+                tempDict[k.replacingOccurrences(of: ",", with: ".")] = v
+            }
+            data["Standard"] = tempDict
+        }
+        if let wide = width.Wide {
+            var tempDict = [String:Bool]()
+            for (k, v) in wide.size {
+                tempDict[k.replacingOccurrences(of: ",", with: ".")] = v
+            }
+            data["Wide"] = tempDict
+        }
+        if let xnarrow = width.XNarrow {
+            var tempDict = [String:Bool]()
+            for (k, v) in xnarrow.size {
+                tempDict[k.replacingOccurrences(of: ",", with: ".")] = v
+            }
+            data["X-Narrow"] = tempDict
+        }
+        if let xwide = width.XWide {
+            var tempDict = [String:Bool]()
+            for (k, v) in xwide.size {
+                tempDict[k.replacingOccurrences(of: ",", with: ".")] = v
+            }
+            data["X-Wide"] = tempDict
+        }
+        
+        print(data)
     }
 }
 
@@ -156,14 +236,10 @@ class MainDetailViewController: UIViewController, UICollectionViewDelegate {
 extension MainDetailViewController: UICollectionViewDataSource, UICollectionViewDelegateFlowLayout {
     
     func numberOfSections(in collectionView: UICollectionView) -> Int {
-        print("number of sections")
-        
-        return 2
+        return 1
     }
     
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-        print("number of sections")
-        
         if section == 0 {
             return self.sizeData.count
         } else {
@@ -175,13 +251,24 @@ extension MainDetailViewController: UICollectionViewDataSource, UICollectionView
         
         if indexPath.section == 0 {
             // print("sizeCV get called ever?")
-            let cell = sizeCollectionView.dequeueReusableCell(withReuseIdentifier: SizeCollectionViewCell.identifier, for: indexPath) as! SizeCollectionViewCell
-            cell.configure(with: self.sizeData[indexPath.row])
+            let cell = sizeCollectionView.dequeueReusableCell(
+                withReuseIdentifier: SizeCollectionViewCell.identifier,
+                for: indexPath) as! SizeCollectionViewCell
+            
+            let sizeName = self.sizeData[indexPath.row]
+            let sizeExists = self.data[self.map[switches] ?? "Standard"]?[sizeName] == true
+            
+            cell.configure(with: sizeName, sizeExists)
             return cell
         } else {
             // print("widthCV get called ever?")
-            let cell = widthCollectionView.dequeueReusableCell(withReuseIdentifier: WidthCollectionViewCell.identifier, for: indexPath) as! WidthCollectionViewCell
-            cell.configure(with: self.widthData[indexPath.row])
+            let cell = widthCollectionView.dequeueReusableCell(
+                withReuseIdentifier: WidthCollectionViewCell.identifier,
+                for: indexPath) as! WidthCollectionViewCell
+            
+            let widthName = self.widthData[indexPath.row]
+            let widthExists = self.data[widthName] != nil
+            cell.configure(with: widthName, indexPath.row, widthExists)
             return cell
         }
     }
@@ -205,7 +292,7 @@ extension MainDetailViewController: UICollectionViewDataSource, UICollectionView
     
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
         let tempLabel = UILabel()
-
+        
         if indexPath.section == 0 {
             tempLabel.text = self.sizeData[indexPath.row]
             return CGSize(width: tempLabel.intrinsicContentSize.width + 40, height: 35)

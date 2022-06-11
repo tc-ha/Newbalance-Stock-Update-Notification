@@ -11,22 +11,30 @@ import UIKit
 class WidthCollectionViewCell: UICollectionViewCell {
     static let identifier = "WidthCollectionViewController"
     
-    private let label: UILabel = {
-        let label = UILabel()
-        label.text = "Test"
-        label.numberOfLines = 0
-        label.textAlignment = .center
-        label.font = .systemFont(ofSize: 18, weight: .regular)
+    private let label: UIButton = {
+        let label = UIButton()
+//        label.text = "Test"
+//        label.numberOfLines = 0
+//        label.textAlignment = .center
+//        label.font = .systemFont(ofSize: 18, weight: .regular)
         label.layer.borderWidth = CGFloat(1.0)
         label.layer.borderColor = UIColor.lightGray.cgColor
+        label.setTitleColor(.black, for: .normal)
+        label.addTarget(self, action: #selector(buttonTapped), for: .touchUpInside)
         return label
     }()
     
+    public var switches = 0
     
     override init(frame: CGRect) {
         super.init(frame: frame)
         contentView.addSubview(label)
         setupViews()
+        
+        // MARK:Set data for Passing Data through Post Notification
+        let objToBeSent = switches
+        NotificationCenter.default.post(name: Notification.Name("NotificationIdentifier"), object: objToBeSent)
+        NotificationCenter.default.post(name: Notification.Name("NotificationIdentifier"), object: nil)
     }
     
     func setupViews() {
@@ -43,7 +51,17 @@ class WidthCollectionViewCell: UICollectionViewCell {
         super.layoutSubviews()
     }
     
-    func configure(with name: String) {
-        label.text = name
+    func configure(with name: String, _ tag: Int, _ widthExists: Bool) {
+        label.setTitle(name, for: .normal)
+        label.tag = tag
+        if !widthExists {
+            label.backgroundColor = .lightGray
+            label.isEnabled = false
+        }
+    }
+    
+    @objc
+    func buttonTapped(sender: UIButton!) {
+        switches = sender.tag
     }
 }

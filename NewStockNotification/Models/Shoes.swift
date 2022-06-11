@@ -47,6 +47,6 @@ struct Width: Codable {
 }
 
 struct Size: Codable {
-    let size: [Int:Bool]
+    let size: [String:Bool]
     
 }
