@@ -56,7 +56,6 @@ final class APICaller {
         var request = URLRequest(url: apiURL)
         request.httpMethod = type.rawValue
         request.timeoutInterval = 30
-        // request.setValue(<#T##String?#>, forHTTPHeaderField: <#T##String#>)
         
         return request
     }

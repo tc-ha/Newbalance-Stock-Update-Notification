@@ -13,10 +13,6 @@ class WidthCollectionViewCell: UICollectionViewCell {
     
     private let label: UIButton = {
         let label = UIButton()
-//        label.text = "Test"
-//        label.numberOfLines = 0
-//        label.textAlignment = .center
-//        label.font = .systemFont(ofSize: 18, weight: .regular)
         label.layer.borderWidth = CGFloat(1.0)
         label.layer.borderColor = UIColor.lightGray.cgColor
         label.setTitleColor(.black, for: .normal)

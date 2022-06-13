@@ -25,7 +25,6 @@ class SizeCollectionViewCell: UICollectionViewCell {
     override init(frame: CGRect) {
         super.init(frame: frame)
         contentView.addSubview(label)
-//        contentView.clipsToBounds = true
         setupViews()
     }
     

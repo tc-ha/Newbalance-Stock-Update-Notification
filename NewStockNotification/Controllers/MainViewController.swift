@@ -13,7 +13,6 @@ class MainViewController: UIViewController, UICollectionViewDelegate {
     
     private let collectionView = UICollectionView(frame: .zero, collectionViewLayout: MainViewController.generateLayout())
     
-    
     enum Section: CaseIterable {
         case first
     }
