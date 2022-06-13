@@ -9,14 +9,11 @@ import UIKit
 
 class MainViewController: UIViewController, UICollectionViewDelegate {
     
+    enum Section { case first }
+    
     var products: Products!
     
-    private let collectionView = UICollectionView(frame: .zero, collectionViewLayout: MainViewController.generateLayout())
-    
-    enum Section: CaseIterable {
-        case first
-    }
-    
+    var collectionView: UICollectionView!
     var dataSource: UICollectionViewDiffableDataSource<Section, Shoes>!
     
     override func viewDidLoad() {
@@ -25,7 +22,8 @@ class MainViewController: UIViewController, UICollectionViewDelegate {
         configureSearchController()
         configureCollectionView()
         configureDatasource()
-        fetchData()
+        
+        getCurrentShoesStock()
     }
     
     func configureSearchController() {
@@ -33,7 +31,6 @@ class MainViewController: UIViewController, UICollectionViewDelegate {
         let searchController = UISearchController(searchResultsController: nil)
         searchController.searchBar.showsScopeBar = false
         searchController.hidesNavigationBarDuringPresentation = false
-        
         searchController.searchResultsUpdater = self // ✅
         
         self.navigationItem.hidesSearchBarWhenScrolling = false
@@ -41,6 +38,7 @@ class MainViewController: UIViewController, UICollectionViewDelegate {
     }
     
     func configureCollectionView() {
+        collectionView = UICollectionView(frame: .zero, collectionViewLayout: MainViewController.generateLayout())
         view.addSubview(collectionView)
         collectionView.register(CollectionViewCell.self, forCellWithReuseIdentifier: CollectionViewCell.identifier)
         collectionView.frame = view.bounds
@@ -52,7 +50,7 @@ class MainViewController: UIViewController, UICollectionViewDelegate {
         dataSource = UICollectionViewDiffableDataSource(collectionView: collectionView, cellProvider: { collectionView, indexPath,
             model in
             
-            let type = Section.allCases[indexPath.section]
+            let type = Section.first
             switch type {
             case .first:
                 guard let cell = collectionView.dequeueReusableCell(
@@ -67,7 +65,7 @@ class MainViewController: UIViewController, UICollectionViewDelegate {
         })
     }
     
-    func fetchData() {
+    func getCurrentShoesStock() {
         APICaller.shared.getCurrentShoesStock { [weak self] result in
             switch result {
             case .success(let model):
@@ -120,9 +118,9 @@ class MainViewController: UIViewController, UICollectionViewDelegate {
         let detailVC = MainDetailViewController()
         let row = self.products.products[indexPath.row]
         let width = row.width
-        let imageUrl = row.image
+        let imageURL = row.image
         let name = row.name
-        detailVC.configure(imageUrl, name, width)
+        detailVC.configure(imageURL, name, width)
         navigationController?.pushViewController(detailVC, animated: true)
     }
 }
@@ -130,7 +128,6 @@ class MainViewController: UIViewController, UICollectionViewDelegate {
 
 extension MainViewController: UISearchResultsUpdating {
     func updateSearchResults(for searchController: UISearchController) {
-        // print(searchController.searchBar.text)
         guard let text = searchController.searchBar.text?.lowercased() else { return }
         DispatchQueue.main.async {
             self.updateDatasource(with: text)

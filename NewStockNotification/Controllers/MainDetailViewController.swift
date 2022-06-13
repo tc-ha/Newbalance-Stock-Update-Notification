@@ -9,79 +9,39 @@ import UIKit
 
 class MainDetailViewController: UIViewController, UICollectionViewDelegate {
     
-    var sizeData: [String] = ["6.0", "6.5", "7.0",
-                              "7.5", "8.0", "8.5",
-                              "9.0", "9.5", "10.0",
-                              "10.5", "11.0", "11.5"]
-    
-    var widthData: [String] = ["X-Narrow", "Narrow", "Standard",
-                               "Wide", "X-Wide"]
-    
-    var width: Width!
-    
-    var data = [String : [String:Bool]]()
-    
-    var switches = 0
-    
-    let map: [Int:String] = [0: "X-Narrow",
-                             1: "Narrow",
-                             2: "Standard",
-                             3: "Wide",
-                             4: "X-Wide"]
-    
-    let buttonStack: UIStackView = {
-        let buttonStack = UIStackView()
-        return buttonStack
-    }()
-    
-    var widthButtons: [UIButton] = []
-    
-    let textLabel: UILabel = {
-        let label = UILabel()
-        label.text = "Test"
-        label.numberOfLines = 0
-        label.textAlignment = .center
-        label.font = .systemFont(ofSize: 18, weight: .regular)
-        return label
-    }()
-    
-    let imageView: UIImageView = {
-        let imageView = UIImageView()
-        imageView.layer.masksToBounds = true
-        imageView.layer.cornerRadius = 8
-        imageView.image = UIImage(systemName: "photo")
-        imageView.contentMode = .scaleAspectFit
-        return imageView
-    }()
+    private var sizeDataGuide: [String] = ["6.0", "6.5", "7.0", "7.5", "8.0", "8.5",
+                                           "9.0", "9.5", "10.0", "10.5", "11.0", "11.5"]
+    private var widthDataGuide: [String] = ["X-Narrow", "Narrow", "Standard", "Wide", "X-Wide"]
+    private var width: Width!
+    private var data = [String : [String:Bool]]()
+    private var index = 0
+    private let index2Width: [Int:String] = [0: "X-Narrow",
+                                             1: "Narrow",
+                                             2: "Standard",
+                                             3: "Wide",
+                                             4: "X-Wide"]
+    private let widthButtonStack: UIStackView = UIStackView()
+    private var widthButtons: [UIButton] = []
+    private var shoesTextLabel: UILabel!
+    private var shoesImage: UIImageView!
     
     private var sizeCollectionView: UICollectionView!
     private var widthCollectionView: UICollectionView!
     
-    lazy var scrollView: UIScrollView = {
-        let scroll = UIScrollView()
-        scroll.translatesAutoresizingMaskIntoConstraints = false
-        scroll.delegate = self
-        scroll.contentSize = CGSize(width: self.view.frame.size.width, height: 1000)
-        return scroll
-    }()
-    
-    var contentView: UIView = {
-        let contentView = UIView()
-        return contentView
-    }()
+    private var scrollView: UIScrollView!
+    private var contentView: UIView = UIView()
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        self.view.backgroundColor = .systemBackground
-        self.title = "Detail view"
         
+        configureViewContoller()
         configureCollectionViews()
-        contentView.addSubview(sizeCollectionView)
+        
         initializeButtons()
         
-        view.addSubview(buttonStack)
+        view.addSubview(widthButtonStack)
         for btn in self.widthButtons {
-            buttonStack.addArrangedSubview(btn)
+            widthButtonStack.addArrangedSubview(btn)
         }
     
         setupViews()
@@ -96,13 +56,13 @@ class MainDetailViewController: UIViewController, UICollectionViewDelegate {
     func initializeButtons() {
         for i in 0..<5 {
             let btn = UIButton()
-            btn.setTitle(self.widthData[i], for: .normal)
+            btn.setTitle(self.widthDataGuide[i], for: .normal)
             btn.addTarget(self, action: #selector(buttonTapped), for: .touchUpInside)
             btn.setTitleColor(.black, for: .normal)
             btn.layoutMargins = UIEdgeInsets(top: 0, left: 10, bottom: 0, right: 10)
             btn.layer.borderWidth = CGFloat(1.0)
             btn.tag = i
-            let key = self.map[i]!
+            let key = self.index2Width[i]!
             btn.isEnabled = self.data[key] != nil
             btn.backgroundColor = btn.isEnabled ? .white : .lightGray
             self.widthButtons.append(btn)
@@ -111,9 +71,46 @@ class MainDetailViewController: UIViewController, UICollectionViewDelegate {
     
     @objc
     func buttonTapped(sender: UIButton!) {
-        print(switches)
-        switches = sender.tag
+        print(index)
+        index = sender.tag
         sizeCollectionView.reloadData()
+    }
+    
+    func configureViewContoller() {
+        self.view.backgroundColor = .systemBackground
+        self.title = "Detail view"
+    }
+    
+    func configureScrollView() {
+        self.scrollView = UIScrollView()
+        self.scrollView.translatesAutoresizingMaskIntoConstraints = false
+        self.scrollView.delegate = self
+        self.scrollView.contentSize = CGSize(width: self.view.frame.size.width, height: 1000)
+    }
+    
+    func configureShoesTextLabel() {
+        self.shoesTextLabel = UILabel()
+        self.shoesTextLabel.text = "Placeholder"
+        self.shoesTextLabel.numberOfLines = 0
+        self.shoesTextLabel.textAlignment = .center
+        self.shoesTextLabel.font = .systemFont(ofSize: 18, weight: .regular)
+    }
+    
+    func configureShoesImage() {
+        self.shoesImage = UIImageView()
+        self.shoesImage.layer.masksToBounds = true
+        self.shoesImage.layer.cornerRadius = 8
+        self.shoesImage.image = UIImage(systemName: "photo")
+        self.shoesImage.contentMode = .scaleAspectFit
+        
+//        self.shoesImage.translatesAutoresizingMaskIntoConstraints = false
+//        NSLayoutConstraint.activate([
+//            self.shoesImage.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
+//            self.shoesImage.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor),
+//            self.shoesImage.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor),
+//            self.shoesImage.widthAnchor.constraint(equalTo: view.safeAreaLayoutGuide.widthAnchor),
+//            self.shoesImage.heightAnchor.constraint(equalTo: view.safeAreaLayoutGuide.heightAnchor, multiplier: 2.0/5.0)
+//        ])
     }
     
     func configureCollectionViews() {
@@ -129,67 +126,76 @@ class MainDetailViewController: UIViewController, UICollectionViewDelegate {
                                     forSupplementaryViewOfKind: UICollectionView.elementKindSectionHeader,
                                     withReuseIdentifier: HeaderCollectionReusableView.identifier)
         
-        let layout2 = UICollectionViewFlowLayout()
-        layout2.scrollDirection = .vertical
-        widthCollectionView = UICollectionView(frame: .zero, collectionViewLayout: layout2)
-        widthCollectionView.delegate = self
-        widthCollectionView.dataSource = self
-        widthCollectionView.register(WidthCollectionViewCell.self, forCellWithReuseIdentifier: WidthCollectionViewCell.identifier)
-        
         view.addSubview(contentView)
-        view.addSubview(imageView)
-        view.addSubview(textLabel)
+        contentView.addSubview(sizeCollectionView)
+        view.addSubview(shoesImage)
+        view.addSubview(shoesTextLabel)
     }
     
     // MARK: Method for receiving Data through Post Notification
     @objc func methodOfReceivedNotification(notification: Notification) {
         if let obj = notification.object as? Int {
-            switches = obj
+            index = obj
         }
     }
     
+    func configureWidthButtonStack() {
+        widthButtonStack.translatesAutoresizingMaskIntoConstraints = false
+        NSLayoutConstraint.activate([
+            widthButtonStack.topAnchor.constraint(equalTo: shoesTextLabel.bottomAnchor, constant: 30),
+            widthButtonStack.leadingAnchor.constraint(equalTo: contentView.leadingAnchor),
+            widthButtonStack.trailingAnchor.constraint(equalTo: contentView.trailingAnchor)
+        ])
+    }
+    
     func setupViews() {
-        let safeLayout = view.safeAreaLayoutGuide
         
-        imageView.translatesAutoresizingMaskIntoConstraints = false
-        imageView.topAnchor.constraint(equalTo: safeLayout.topAnchor).isActive = true
-        imageView.leadingAnchor.constraint(equalTo: safeLayout.leadingAnchor).isActive = true
-        imageView.trailingAnchor.constraint(equalTo: safeLayout.trailingAnchor).isActive = true
+        shoesImage.translatesAutoresizingMaskIntoConstraints = false
+        NSLayoutConstraint.activate([
+            shoesImage.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
+            shoesImage.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor),
+            shoesImage.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor),
+            shoesImage.widthAnchor.constraint(equalTo: view.safeAreaLayoutGuide.widthAnchor),
+            shoesImage.heightAnchor.constraint(equalTo: view.safeAreaLayoutGuide.heightAnchor, multiplier: 2.0/5.0)
+        ])
         
-        imageView.widthAnchor.constraint(equalTo: safeLayout.widthAnchor).isActive = true
-        imageView.heightAnchor.constraint(equalTo: safeLayout.heightAnchor, multiplier: 2.0/5.0).isActive = true
+        shoesTextLabel.translatesAutoresizingMaskIntoConstraints = false
+        NSLayoutConstraint.activate([
+            shoesTextLabel.topAnchor.constraint(equalTo: shoesImage.bottomAnchor, constant: 3),
+            shoesTextLabel.leadingAnchor.constraint(equalTo: shoesImage.leadingAnchor, constant: 10)
+        ])
+        shoesTextLabel.font = UIFont(name:"HelveticaNeue-Bold", size: 25.0)
         
-        
-        textLabel.translatesAutoresizingMaskIntoConstraints = false
-        textLabel.topAnchor.constraint(equalTo: imageView.bottomAnchor, constant: 3).isActive = true
-        textLabel.leadingAnchor.constraint(equalTo: imageView.leadingAnchor, constant: 10).isActive = true
-        textLabel.font = UIFont(name:"HelveticaNeue-Bold", size: 25.0)
-        
-        
-//        contentView.backgroundColor = .lightGray
+
         contentView.translatesAutoresizingMaskIntoConstraints = false
-        contentView.topAnchor.constraint(equalTo: safeLayout.topAnchor).isActive = true
-        contentView.bottomAnchor.constraint(equalTo: safeLayout.bottomAnchor).isActive = true
-        contentView.leadingAnchor.constraint(equalTo: safeLayout.leadingAnchor).isActive = true
-        contentView.trailingAnchor.constraint(equalTo: safeLayout.trailingAnchor).isActive = true
+        NSLayoutConstraint.activate([
+            contentView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
+            contentView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor),
+            contentView.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor),
+            contentView.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor)
+        ])
         
         sizeCollectionView.translatesAutoresizingMaskIntoConstraints = false
-        sizeCollectionView.topAnchor.constraint(equalTo: buttonStack.bottomAnchor, constant: 25).isActive = true
-        sizeCollectionView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor).isActive = true
-        sizeCollectionView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 10).isActive = true
-        sizeCollectionView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -10).isActive = true
+        NSLayoutConstraint.activate([
+            sizeCollectionView.topAnchor.constraint(equalTo: widthButtonStack.bottomAnchor, constant: 25),
+            sizeCollectionView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor),
+            sizeCollectionView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 10),
+            sizeCollectionView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -10)
+        ])
         
-        buttonStack.translatesAutoresizingMaskIntoConstraints = false
-        buttonStack.topAnchor.constraint(equalTo: textLabel.bottomAnchor, constant: 30).isActive = true
-//        buttonStack.bottomAnchor.constraint(equalTo: contentView.bottomAnchor).isActive = true
-        buttonStack.leadingAnchor.constraint(equalTo: contentView.leadingAnchor).isActive = true
-        buttonStack.trailingAnchor.constraint(equalTo: contentView.trailingAnchor).isActive = true
+        configureWidthButtonStack()
+        
     }
     
     func configure(_ url: String, _ name: String, _ width: Width) {
+        print("configure get called")
         guard let url = URL(string: url) else { return }
-        self.imageView.load(url: url)
-        self.textLabel.text = name
+        
+        configureShoesTextLabel()
+        configureShoesImage()
+        
+        self.shoesImage.load(url: url)
+        self.shoesTextLabel.text = name
         self.width = width
         
         if let narrow = width.Narrow {
@@ -227,8 +233,6 @@ class MainDetailViewController: UIViewController, UICollectionViewDelegate {
             }
             data["X-Wide"] = tempDict
         }
-        
-        print(data)
     }
 }
 
@@ -241,9 +245,9 @@ extension MainDetailViewController: UICollectionViewDataSource, UICollectionView
     
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
         if section == 0 {
-            return self.sizeData.count
+            return self.sizeDataGuide.count
         } else {
-            return self.widthData.count
+            return self.widthDataGuide.count
         }
     }
     
@@ -255,8 +259,8 @@ extension MainDetailViewController: UICollectionViewDataSource, UICollectionView
                 withReuseIdentifier: SizeCollectionViewCell.identifier,
                 for: indexPath) as! SizeCollectionViewCell
             
-            let sizeName = self.sizeData[indexPath.row]
-            let sizeExists = self.data[self.map[switches] ?? "Standard"]?[sizeName] == true
+            let sizeName = self.sizeDataGuide[indexPath.row]
+            let sizeExists = self.data[self.index2Width[index] ?? "Standard"]?[sizeName] == true
             
             cell.configure(with: sizeName, sizeExists)
             return cell
@@ -266,7 +270,7 @@ extension MainDetailViewController: UICollectionViewDataSource, UICollectionView
                 withReuseIdentifier: WidthCollectionViewCell.identifier,
                 for: indexPath) as! WidthCollectionViewCell
             
-            let widthName = self.widthData[indexPath.row]
+            let widthName = self.widthDataGuide[indexPath.row]
             let widthExists = self.data[widthName] != nil
             cell.configure(with: widthName, indexPath.row, widthExists)
             return cell
@@ -294,10 +298,10 @@ extension MainDetailViewController: UICollectionViewDataSource, UICollectionView
         let tempLabel = UILabel()
         
         if indexPath.section == 0 {
-            tempLabel.text = self.sizeData[indexPath.row]
+            tempLabel.text = self.sizeDataGuide[indexPath.row]
             return CGSize(width: tempLabel.intrinsicContentSize.width + 40, height: 35)
         } else {
-            tempLabel.text = self.widthData[indexPath.row]
+            tempLabel.text = self.widthDataGuide[indexPath.row]
             return CGSize(width: tempLabel.intrinsicContentSize.width + 20, height: 35)
         }
     }
